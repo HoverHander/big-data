@@ -1,0 +1,124 @@
+Mean Loan Amount,Median Loan Amount,Mean Date Approved,Median Date Approved,Mean State Count,Median State Count,Borrowers Per State,Businesses Per Type,Non-profit Count,Businesses by Gender,Forgiveness Statistics,Current Approval Statistics,Undisbursed Statistics,Debt Interest Statistics
+294719.8603360187,155039.78,2020-09-01 00:19:26.904590592,2020-05-01,32778.245614035084,10743.0,"BorrowerState
+CA    600849
+AL    169558
+AZ    169243
+AR    102040
+TX     76192
+NY     74108
+FL     60031
+IL     40814
+PA     38535
+OH     32645
+NJ     32536
+MI     29801
+MA     27474
+GA     25835
+WA     23753
+AK     23693
+VA     23267
+NC     22827
+CO     19743
+MN     19728
+MD     18978
+WI     17353
+IN     16600
+MO     16349
+TN     15867
+LA     13669
+OR     13456
+CT     12891
+SC     10743
+OK      9997
+UT      9293
+KY      9178
+IA      8295
+NV      8261
+KS      8203
+NE      5804
+MS      5504
+NH      5078
+HI      4980
+NM      4485
+ID      4417
+DC      4398
+ME      4185
+RI      3792
+WV      3365
+ND      3222
+MT      3144
+DE      2996
+PR      2952
+SD      2695
+VT      2267
+WY      2138
+GU       443
+AS       314
+VI       290
+MP        82
+AE         4
+Name: count, dtype: int64","BusinessType
+Corporation                            687042
+Limited  Liability Company(LLC)        425842
+Subchapter S Corporation               271981
+Sole Proprietorship                    244370
+Non-Profit Organization                 74574
+Self-Employed Individuals               50749
+Independent Contractors                 40228
+Partnership                             30484
+Limited Liability Partnership           18246
+Professional Association                 9699
+Single Member LLC                        4059
+Cooperative                              3414
+501(c)3 – Non Profit                     2628
+501(c)6 – Non Profit Membership          1184
+Non-Profit Childcare Center              1138
+Employee Stock Ownership Plan(ESOP)       681
+Trust                                     646
+Joint Venture                             204
+Housing Co-op                             152
+Tenant in Common                          146
+Qualified Joint-Venture (spouses)          86
+Tribal Concerns                            74
+501(c) – Non Profit except 3,4,6,          15
+501(c)19 – Non Profit Veterans              8
+Rollover as Business Start-Ups (ROB         6
+Name: count, dtype: int64","NonProfit
+Y    79547
+Name: count, dtype: int64","Gender
+Unanswered      1117053
+Male Owned       559423
+Female Owned     192049
+Name: count, dtype: int64","count    1.780142e+06
+mean     3.000407e+05
+std      5.864539e+05
+min      1.000000e-02
+25%      3.138747e+04
+50%      1.586667e+05
+75%      3.112977e+05
+max      1.032556e+07
+Name: ForgivenessAmount, dtype: float64","count    1.868525e+06
+mean     2.947199e+05
+std      5.853945e+05
+min      1.000000e+01
+25%      2.886200e+04
+50%      1.550398e+05
+75%      3.045825e+05
+max      1.000000e+07
+Name: CurrentApprovalAmount, dtype: float64","count    1.868422e+06
+mean     2.998169e+00
+std      2.573807e+03
+min      0.000000e+00
+25%      0.000000e+00
+50%      0.000000e+00
+75%      0.000000e+00
+max      3.346517e+06
+Name: UndisbursedAmount, dtype: float64","count    4.317400e+04
+mean     1.103541e+04
+std      4.795401e+04
+min      0.000000e+00
+25%      0.000000e+00
+50%      0.000000e+00
+75%      5.988500e+03
+max      2.497617e+06
+Name: DEBT_INTEREST_PROCEED, dtype: float64"

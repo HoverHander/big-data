@@ -24,171 +24,166 @@ import pydeck as pdk
 import streamlit as st
 
 # SETTING PAGE CONFIG TO WIDE MODE AND ADDING A TITLE AND FAVICON
-st.set_page_config(layout="wide", page_title="NYC Ridesharing Demo", page_icon=":taxi:")
+st.set_page_config(layout="wide", page_title="PPP Loans Analysis", page_icon=":money_with_wings:")
 
+from pyecharts import options as opts
+from pyecharts.charts import Pie
+from streamlit_echarts import st_pyecharts
 
-# LOAD DATA ONCE
-@st.cache_resource
-def load_data():
-    path = "uber-raw-data-sep14.csv.gz"
-    if not os.path.isfile(path):
-        path = f"https://github.com/streamlit/demo-uber-nyc-pickups/raw/main/{path}"
-
-    data = pd.read_csv(
-        path,
-        nrows=100000,  # approx. 10% of data
-        names=[
-            "date/time",
-            "lat",
-            "lon",
-        ],  # specify names directly since they don't change
-        skiprows=1,  # don't read header since names specified directly
-        usecols=[0, 1, 2],  # doesn't load last column, constant value "B02512"
-        parse_dates=[
-            "date/time"
-        ],  # set as datetime instead of converting after the fact
-    )
-
-    return data
-
-
-# FUNCTION FOR AIRPORT MAPS
-def map(data, lat, lon, zoom):
-    st.write(
-        pdk.Deck(
-            map_style="mapbox://styles/mapbox/light-v9",
-            initial_view_state={
-                "latitude": lat,
-                "longitude": lon,
-                "zoom": zoom,
-                "pitch": 50,
-            },
-            layers=[
-                pdk.Layer(
-                    "HexagonLayer",
-                    data=data,
-                    get_position=["lon", "lat"],
-                    radius=100,
-                    elevation_scale=4,
-                    elevation_range=[0, 1000],
-                    pickable=True,
-                    extruded=True,
-                ),
-            ],
-        )
-    )
-
-
-# FILTER DATA FOR A SPECIFIC HOUR, CACHE
 @st.cache_data
-def filterdata(df, hour_selected):
-    return df[df["date/time"].dt.hour == hour_selected]
+def show_filtered_over_150k():
+    df = pd.read_csv('../../airflow/storage/filtered_data_0.csv')
+    # Convert 'DateApproved' column to datetime
+    df['DateApproved'] = pd.to_datetime(df['DateApproved'])
+    df['ForgivenessDate'] = pd.to_datetime(df['ForgivenessDate'])
+
+    # Title of the app
+    st.title('Number of PPP Approved per Gender over Date Approved')
+
+    # Line chart for Gender over DateApproved
+    st.line_chart(df.groupby('DateApproved')['Gender'].value_counts().unstack().fillna(0))
+
+    st.title('Number of PPP Borrowers per State over Date Approved')
 
 
-# CALCULATE MIDPOINT FOR GIVEN SET OF DATA
+    st.line_chart(df.groupby('DateApproved')['BorrowerState'].value_counts().unstack())
+
+    st.title('Number of PPP Approved per Ethnicity over Date Approved')
+
+    st.line_chart(df.groupby('DateApproved')['Ethnicity'].value_counts().unstack())
+
+    st.title('Number of PPP Approved per Business Age over Date Approved')
+
+
+    st.line_chart(df.groupby('DateApproved')['BusinessAgeDescription'].value_counts().unstack())
+
+    st.title('Average Current Approval Amount over Date Approved')
+    
+    # Group by DateApproved and calculate average currentApprovalAmount
+    avg_approval_amount = df.groupby('DateApproved')['CurrentApprovalAmount'].mean().reset_index()
+
+    st.line_chart(avg_approval_amount.set_index('DateApproved'))
+
+    # Group by 'DateApproved' and count the number of loans (rows) for each group
+    loan_counts = df.groupby('DateApproved').size()
+
+
+
+    st.title('Average Number of Loans Approved per Date Approved')
+
+    # Line chart for average number of loans per DateApproved
+    st.line_chart(loan_counts)
+
+    st.title('Average Forgiveness Amount over ForgivenessDate')
+    # Group by DateApproved and calculate average currentApprovalAmount
+    avg_forgiveness_amount = df.groupby('ForgivenessDate')['ForgivenessAmount'].mean().reset_index()
+
+    st.line_chart(avg_forgiveness_amount.set_index('ForgivenessDate'))
+
+    st.title("Number of businesses per type")
+    business_type_counts = df['BusinessType'].value_counts()
+    st.bar_chart(business_type_counts)
+
+
+    st.title("PPP borrowers businesses in rural vs urban area")
+    rural_urban_type_counts = df['RuralUrbanIndicator'].value_counts()
+    st.bar_chart(rural_urban_type_counts)
+
+    # Convert business_type_counts to list of tuples for Pyecharts
+    rural_urban_count = [(key, value) for key, value in rural_urban_type_counts.items()]
+
+    pie_chart2 = (
+        Pie()
+        .add("", rural_urban_count)
+        .set_global_opts(title_opts=opts.TitleOpts(title="PPP borrowers businesses in rural vs urban area"))
+        .set_series_opts(label_opts=opts.LabelOpts(formatter="{b}: {d}%"))
+    )
+
+    st_pyecharts(pie_chart2)
+
+
 @st.cache_data
-def mpoint(lat, lon):
-    return (np.average(lat), np.average(lon))
+def show_filtered_upto_150k():
+    df = pd.read_csv('../../airflow/storage/filtered_data_1.csv')
+    # Convert 'DateApproved' column to datetime
+    df['DateApproved'] = pd.to_datetime(df['DateApproved'])
+    df['ForgivenessDate'] = pd.to_datetime(df['ForgivenessDate'])
+
+    # Title of the app
+    st.title('Number of PPP Approved per Gender over Date Approved')
+
+    # Line chart for Gender over DateApproved
+    st.line_chart(df.groupby('DateApproved')['Gender'].value_counts().unstack().fillna(0))
+
+    st.title('Number of PPP Borrowers per State over Date Approved')
 
 
-# FILTER DATA BY HOUR
-@st.cache_data
-def histdata(df, hr):
-    filtered = data[
-        (df["date/time"].dt.hour >= hr) & (df["date/time"].dt.hour < (hr + 1))
-    ]
+    st.line_chart(df.groupby('DateApproved')['BorrowerState'].value_counts().unstack())
 
-    hist = np.histogram(filtered["date/time"].dt.minute, bins=60, range=(0, 60))[0]
+    st.title('Number of PPP Approved per Ethnicity over Date Approved')
 
-    return pd.DataFrame({"minute": range(60), "pickups": hist})
+    st.line_chart(df.groupby('DateApproved')['Ethnicity'].value_counts().unstack())
+
+    st.title('Number of PPP Approved per Business Age over Date Approved')
 
 
-# STREAMLIT APP LAYOUT
-data = load_data()
+    st.line_chart(df.groupby('DateApproved')['BusinessAgeDescription'].value_counts().unstack())
 
-# LAYING OUT THE TOP SECTION OF THE APP
-row1_1, row1_2 = st.columns((2, 3))
+    st.title('Average Current Approval Amount over Date Approved')
+    
+    # Group by DateApproved and calculate average currentApprovalAmount
+    avg_approval_amount = df.groupby('DateApproved')['CurrentApprovalAmount'].mean().reset_index()
 
-# SEE IF THERE'S A QUERY PARAM IN THE URL (e.g. ?pickup_hour=2)
-# THIS ALLOWS YOU TO PASS A STATEFUL URL TO SOMEONE WITH A SPECIFIC HOUR SELECTED,
-# E.G. https://share.streamlit.io/streamlit/demo-uber-nyc-pickups/main?pickup_hour=2
-if not st.session_state.get("url_synced", False):
-    try:
-        pickup_hour = int(st.experimental_get_query_params()["pickup_hour"][0])
-        st.session_state["pickup_hour"] = pickup_hour
-        st.session_state["url_synced"] = True
-    except KeyError:
-        pass
+    st.line_chart(avg_approval_amount.set_index('DateApproved'))
+
+    # Group by 'DateApproved' and count the number of loans (rows) for each group
+    loan_counts = df.groupby('DateApproved').size()
+
+    # Calculate the average number of loans per 'DateApproved'
+    average_loans_per_date = loan_counts.mean()
+
+    st.title('Average Number of Loans Approved per Date Approved')
+
+    # Line chart for average number of loans per DateApproved
+    st.line_chart(loan_counts)
+
+    st.title('Average Forgiveness Amount over ForgivenessDate')
+    # Group by DateApproved and calculate average currentApprovalAmount
+    avg_forgiveness_amount = df.groupby('ForgivenessDate')['ForgivenessAmount'].mean().reset_index()
+
+    st.line_chart(avg_forgiveness_amount.set_index('ForgivenessDate'))
+
+    st.title("Number of businesses per type")
+    business_type_counts = df['BusinessType'].value_counts()
+    st.bar_chart(business_type_counts)
 
 
-# IF THE SLIDER CHANGES, UPDATE THE QUERY PARAM
-def update_query_params():
-    hour_selected = st.session_state["pickup_hour"]
-    st.experimental_set_query_params(pickup_hour=hour_selected)
+    st.title("PPP borrowers businesses in rural vs urban area")
+    rural_urban_type_counts = df['RuralUrbanIndicator'].value_counts()
+    st.bar_chart(rural_urban_type_counts)
 
+    # Convert business_type_counts to list of tuples for Pyecharts
+    rural_urban_count = [(key, value) for key, value in rural_urban_type_counts.items()]
 
-with row1_1:
-    st.title("NYC Uber Ridesharing Data")
-    hour_selected = st.slider(
-        "Select hour of pickup", 0, 23, key="pickup_hour", on_change=update_query_params
+    pie_chart2 = (
+        Pie()
+        .add("", rural_urban_count)
+        .set_global_opts(title_opts=opts.TitleOpts(title="PPP borrowers businesses in rural vs urban area"))
+        .set_series_opts(label_opts=opts.LabelOpts(formatter="{b}: {d}%"))
     )
 
+    st_pyecharts(pie_chart2)
 
-with row1_2:
-    st.write(
-        """
-    ##
-    Examining how Uber pickups vary over time in New York City's and at its major regional airports.
-    By sliding the slider on the left you can view different slices of time and explore different transportation trends.
-    """
-    )
 
-# LAYING OUT THE MIDDLE SECTION OF THE APP WITH THE MAPS
-row2_1, row2_2, row2_3, row2_4 = st.columns((2, 1, 1, 1))
 
-# SETTING THE ZOOM LOCATIONS FOR THE AIRPORTS
-la_guardia = [40.7900, -73.8700]
-jfk = [40.6650, -73.7821]
-newark = [40.7090, -74.1805]
-zoom_level = 12
-midpoint = mpoint(data["lat"], data["lon"])
-
-with row2_1:
-    st.write(
-        f"""**All New York City from {hour_selected}:00 and {(hour_selected + 1) % 24}:00**"""
-    )
-    map(filterdata(data, hour_selected), midpoint[0], midpoint[1], 11)
-
-with row2_2:
-    st.write("**La Guardia Airport**")
-    map(filterdata(data, hour_selected), la_guardia[0], la_guardia[1], zoom_level)
-
-with row2_3:
-    st.write("**JFK Airport**")
-    map(filterdata(data, hour_selected), jfk[0], jfk[1], zoom_level)
-
-with row2_4:
-    st.write("**Newark Airport**")
-    map(filterdata(data, hour_selected), newark[0], newark[1], zoom_level)
-
-# CALCULATING DATA FOR THE HISTOGRAM
-chart_data = histdata(data, hour_selected)
-
-# LAYING OUT THE HISTOGRAM SECTION
-st.write(
-    f"""**Breakdown of rides per minute between {hour_selected}:00 and {(hour_selected + 1) % 24}:00**"""
+dataset = st.selectbox(
+    "Select which dataset you want to visualize",
+    ("filtered data of loans over $150k", "filtered of loans up to $150k"),
+    index=None,
+    placeholder="Choose dataset..."
 )
 
-st.altair_chart(
-    alt.Chart(chart_data)
-    .mark_area(
-        interpolate="step-after",
-    )
-    .encode(
-        x=alt.X("minute:Q", scale=alt.Scale(nice=False)),
-        y=alt.Y("pickups:Q"),
-        tooltip=["minute", "pickups"],
-    )
-    .configure_mark(opacity=0.2, color="red"),
-    use_container_width=True,
-)
+if dataset == "filtered data of loans over $150k":
+    show_filtered_over_150k()
+elif dataset == "filtered of loans up to $150k":
+    show_filtered_upto_150k()

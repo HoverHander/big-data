@@ -30,7 +30,7 @@ else:
         @task.virtualenv(use_dill=True,
             system_site_packages=False,
             requirements=["pandas"])
-        def acquire_data(urls):
+        def acquire_data1(urls, start, end):
             import os
             import http.client
             
@@ -39,65 +39,544 @@ else:
             if os.path.exists(storage_folder):
                 os.chdir(storage_folder)
            
-            for idx, url in enumerate(urls):
-                filename = f"csv_{idx}.csv" 
+            for i in range(start,end):
+                filename = f"csv_{i}.csv" 
                 if os.path.exists(filename):
                     print(f"CSV file {filename} already exists. Skipping download.")
-                    # saved_csvs.append(filename)
+                    
                     continue
                 
-                print(f"Downloading {url}...")
+                print(f"Downloading {urls[i]}...")
                 conn = http.client.HTTPSConnection("data.sba.gov")
-                conn.request("GET", url)
+                conn.request("GET", urls[i])
                 response = conn.getresponse()
                 if response.status == 200:
                     decoded_content = response.read().decode('utf-8')
                     with open(filename, 'w', newline='') as f:
                         f.write(decoded_content)
                     print(f"CSV file saved as {filename}")
-                    # saved_csvs.append(filename)
+                    
                 else:
-                    print(f"Failed to download {url}: {response.status} {response.reason}")
+                    print(f"Failed to download {urls[i]}: {response.status} {response.reason}")
                 conn.close()
             print("csvs downloaded")
             return "csvs downloaded"
+        
+        @task.virtualenv(use_dill=True,
+            system_site_packages=False,
+            requirements=["pandas"])
+        def acquire_data2(urls, start, end):
+            import os
+            import http.client
+            
+            storage_folder = "/opt/airflow/storage/ppp"
+            #if storage folder exists cd into it
+            if os.path.exists(storage_folder):
+                os.chdir(storage_folder)
+           
+            for i in range(start,end):
+                filename = f"csv_{i}.csv" 
+                if os.path.exists(filename):
+                    print(f"CSV file {filename} already exists. Skipping download.")
+                    
+                    continue
+                
+                print(f"Downloading {urls[i]}...")
+                conn = http.client.HTTPSConnection("data.sba.gov")
+                conn.request("GET", urls[i])
+                response = conn.getresponse()
+                if response.status == 200:
+                    decoded_content = response.read().decode('utf-8')
+                    with open(filename, 'w', newline='') as f:
+                        f.write(decoded_content)
+                    print(f"CSV file saved as {filename}")
+                    
+                else:
+                    print(f"Failed to download {urls[i]}: {response.status} {response.reason}")
+                conn.close()
+            print("csvs downloaded")
+            return "csvs downloaded"
+        
+        # @task.virtualenv(use_dill=True,
+        #     system_site_packages=False,
+        #     requirements=["pandas"])
+        # def acquire_data3(urls, start, end):
+        #     import os
+        #     import http.client
+            
+        #     storage_folder = "/opt/airflow/storage/ppp"
+        #     #if storage folder exists cd into it
+        #     if os.path.exists(storage_folder):
+        #         os.chdir(storage_folder)
+           
+        #     for i in range(start,end):
+        #         filename = f"csv_{i}.csv" 
+        #         if os.path.exists(filename):
+        #             print(f"CSV file {filename} already exists. Skipping download.")
+                    
+        #             continue
+                
+        #         print(f"Downloading {urls[i]}...")
+        #         conn = http.client.HTTPSConnection("data.sba.gov")
+        #         conn.request("GET", urls[i])
+        #         response = conn.getresponse()
+        #         if response.status == 200:
+        #             decoded_content = response.read().decode('utf-8')
+        #             with open(filename, 'w', newline='') as f:
+        #                 f.write(decoded_content)
+        #             print(f"CSV file saved as {filename}")
+                    
+        #         else:
+        #             print(f"Failed to download {urls[i]}: {response.status} {response.reason}")
+        #         conn.close()
+        #     print("csvs downloaded")
+        #     return "csvs downloaded"
+        
+      
+
+        # @task.virtualenv(use_dill=True,
+        #     system_site_packages=False,
+        #     requirements=["pandas"])
+        # def acquire_data4(urls):
+        #     import os
+        #     import http.client
+            
+        #     storage_folder = "/opt/airflow/storage/ppp"
+        #     #if storage folder exists cd into it
+        #     if os.path.exists(storage_folder):
+        #         os.chdir(storage_folder)
+           
+        #     for idx, url in enumerate(urls):
+        #         filename = f"csv_{idx}.csv" 
+        #         if os.path.exists(filename):
+        #             print(f"CSV file {filename} already exists. Skipping download.")
+                    
+        #             continue
+                
+        #         print(f"Downloading {url}...")
+        #         conn = http.client.HTTPSConnection("data.sba.gov")
+        #         conn.request("GET", url)
+        #         response = conn.getresponse()
+        #         if response.status == 200:
+        #             decoded_content = response.read().decode('utf-8')
+        #             with open(filename, 'w', newline='') as f:
+        #                 f.write(decoded_content)
+        #             print(f"CSV file saved as {filename}")
+                   
+        #         else:
+        #             print(f"Failed to download {url}: {response.status} {response.reason}")
+        #         conn.close()
+        #     print("csvs downloaded")
+        #     return "csvs downloaded"
 
         @task()
-        def clean_data():
+        def place_holder_task1():
+            return True
+
+        @task()
+        def clean_data1(start, end):
             """
             #### Clean task
-            Cleans the data by dropping all the NaN fields in the data and combining it into one dataframe.
+            Cleans the data by dropping all the NaN fields in the data and compiles
+            specified number of csvs.
             """
             import os
 
             storage_folder = "./storage/ppp/"
-            print("storage path exists", os.path.exists(storage_folder))
+            
             if os.path.exists(storage_folder):
                
-                csv_files = os.listdir(storage_folder)
-            
                 dfs = []
-                for csv_file in csv_files:
-                    df = pd.read_csv(csv_file)
-                    print('printing df', df)
-                # df_cleaned = df.dropna()
-                # df_filtered = df_cleaned[(df_cleaned != 'Unanswered').all(axis=1)]
+
+                for i in range(start, end):
+                    cleaned_csv_path = f"{storage_folder}cleaned_data_{start}.csv"
+                    file_path = f"{storage_folder}csv_{i}.csv"
+                    if os.path.exists(cleaned_csv_path):
+                        print(f"CSV file {cleaned_csv_path} already exists. Skipping download.")
+
+                        return
+
+                    
+                    print("reading file", file_path)
+                    df = pd.read_csv(file_path)
+                    # df_cleaned = df.fillna(0)
                     dfs.append(df)
-                print('pringintg dfs', dfs[:2])
+                
+
                 concatDf = pd.concat(dfs, ignore_index=True)
-                concatDf.to_csv(storage_folder + "cleaned_data.csv", index=False)
-            print("csvs compiled and dropped NaN fields")
-            return "csvs compiled and dropped NaN fields"
+                
+                concatDf.to_csv(cleaned_csv_path, index=False)
+    
+            return {f"compiled and cleaned csvs {start}-{end-1}": cleaned_csv_path}
+        
+        # @task()
+        # def clean_data2(start, end):
+        #     """
+        #     #### Clean task
+        #     Cleans the data by dropping all the NaN fields in the data and compiles
+        #     specified number of csvs.
+        #     """
+        #     import os
+
+        #     storage_folder = "./storage/ppp/"
+            
+        #     if os.path.exists(storage_folder):
+               
+        #         dfs = []
+
+        #         for i in range(start, end):
+        #             file_path = f"{storage_folder}csv_{i}.csv"
+        #             cleaned_csv_path = f"{storage_folder}cleaned_data_{start}.csv"
+        #             if os.path.exists(cleaned_csv_path):
+        #                 print(f"CSV file {cleaned_csv_path} already exists. Skipping download.")
+
+        #                 return
+        #             print("reading file", file_path)
+        #             df = pd.read_csv(file_path)
+        #             df_cleaned = df.fillna(0)
+        #             dfs.append(df_cleaned)
+                
+
+        #         concatDf = pd.concat(dfs, ignore_index=True)
+                
+        #         concatDf.to_csv(cleaned_csv_path, index=False)
+    
+        #     return {f"compiled and cleaned csvs {start}-{end-1}": cleaned_csv_path}
+        
+        # @task()
+        # def clean_data3(start, end):
+        #     """
+        #     #### Clean task
+        #     Cleans the data by dropping all the NaN fields in the data and compiles
+        #     specified number of csvs.
+        #     """
+        #     import os
+
+        #     storage_folder = "./storage/ppp/"
+            
+        #     if os.path.exists(storage_folder):
+               
+        #         dfs = []
+
+        #         for i in range(start, end):
+        #             file_path = f"{storage_folder}csv_{i}.csv"
+        #             print("reading file", file_path)
+        #             df = pd.read_csv(file_path)
+        #             df_cleaned = df.fillna(0)
+        #             dfs.append(df_cleaned)
+                
+
+        #         concatDf = pd.concat(dfs, ignore_index=True)
+        #         cleaned_csv_path = f"{storage_folder}cleaned_data_{start}.csv"
+        #         concatDf.to_csv(cleaned_csv_path, index=False)
+    
+        #     return {f"compiled and cleaned csvs {start}-{end-1}": cleaned_csv_path}
+        
+        # @task()
+        # def clean_data4(start, end):
+        #     """
+        #     #### Clean task
+        #     Cleans the data by dropping all the NaN fields in the data and compiles
+        #     specified number of csvs.
+        #     """
+        #     import os
+
+        #     storage_folder = "./storage/ppp/"
+            
+        #     if os.path.exists(storage_folder):
+               
+        #         dfs = []
+
+        #         for i in range(start, end):
+        #             file_path = f"{storage_folder}csv_{i}.csv"
+        #             print("reading file", file_path)
+        #             df = pd.read_csv(file_path)
+        #             df_cleaned = df.fillna(0)
+        #             dfs.append(df_cleaned)
+                
+
+        #         concatDf = pd.concat(dfs, ignore_index=True)
+        #         cleaned_csv_path = f"{storage_folder}cleaned_data_{start}.csv"
+        #         concatDf.to_csv(cleaned_csv_path, index=False)
+    
+        #     return {f"compiled and cleaned csvs {start}-{end-1}": cleaned_csv_path}
+        # @task()
+        # def clean_data5(start, end):
+        #     """
+        #     #### Clean task
+        #     Cleans the data by dropping all the NaN fields in the data and compiles
+        #     specified number of csvs.
+        #     """
+        #     import os
+
+        #     storage_folder = "./storage/ppp/"
+            
+        #     if os.path.exists(storage_folder):
+               
+        #         dfs = []
+
+        #         for i in range(start, end):
+        #             file_path = f"{storage_folder}csv_{i}.csv"
+        #             df = pd.read_csv(file_path)
+        #             df_cleaned = df.fillna(0)
+        #             dfs.append(df_cleaned)
+                
+
+        #         concatDf = pd.concat(dfs, ignore_index=True)
+        #         cleaned_csv_path = f"{storage_folder}cleaned_data_{start}.csv"
+        #         concatDf.to_csv(cleaned_csv_path, index=False)
+    
+        #     return {f"compiled and cleaned csvs {start}-{end-1}": cleaned_csv_path}
+        
+        # @task()
+        # def clean_data6(start, end):
+        #     """
+        #     #### Clean task
+        #     Cleans the data by dropping all the NaN fields in the data and compiles
+        #     specified number of csvs.
+        #     """
+        #     import os
+
+        #     storage_folder = "./storage/ppp/"
+            
+        #     if os.path.exists(storage_folder):
+               
+        #         dfs = []
+
+        #         for i in range(start, end):
+        #             file_path = f"{storage_folder}csv_{i}.csv"
+        #             df = pd.read_csv(file_path)
+        #             df_cleaned = df.fillna(0)
+        #             dfs.append(df_cleaned)
+                
+
+        #         concatDf = pd.concat(dfs, ignore_index=True)
+        #         cleaned_csv_path = f"{storage_folder}cleaned_data_{start}.csv"
+        #         concatDf.to_csv(cleaned_csv_path, index=False)
+    
+        #     return {f"compiled and cleaned csvs {start}-{end-1}": cleaned_csv_path}
+        
+        @task()
+        def place_holder_task2():
+            return True
+
+        @task()
+        def filter_data1(num):
+            """
+            #### fiter task
+            Filters the cleaned data by dropping all the unanswered fields in the data and
+            saves as csv. Later in data visualization, will show cleaned data, and data
+            with unanswered fields dropped
+            """
+            import os
+
+            storage_folder = "./storage/ppp/"
+            
+            if os.path.exists(storage_folder):
+                file_path = f"{storage_folder}cleaned_data_{num}.csv"
+                filtered_csv_path = f"{storage_folder}filtered_data_{num}.csv"
+                if os.path.exists(filtered_csv_path):
+                    print(f"CSV file {filtered_csv_path} already exists. Skipping download.")
+
+                    return
+                
+                df = pd.read_csv(file_path)
+                df_filtered = df[(df != "Unanswered").all(axis=1)]
+                
+                df_filtered.to_csv(filtered_csv_path, index=False)
+    
+            return {f"filtered and cleaned csv": filtered_csv_path}
+
+        # @task()
+        # def filter_data2(num):
+        #     """
+        #     #### fiter task
+        #     Filters the cleaned data by dropping all the unanswered fields in the data and
+        #     saves as csv. Later in data visualization, will show cleaned data, and data
+        #     with unanswered fields dropped
+        #     """
+        #     import os
+
+        #     storage_folder = "./storage/ppp/"
+            
+        #     if os.path.exists(storage_folder):
+        #         filtered_csv_path = f"{storage_folder}filtered_data_{num}.csv"
+        #         file_path = f"{storage_folder}cleaned_data_{num}.csv"
+        #         if os.path.exists(filtered_csv_path):
+        #             print(f"CSV file {filtered_csv_path} already exists. Skipping download.")
+
+        #             return
+        #         df = pd.read_csv(file_path)
+        #         df_filtered = df[(df != "Unanswered").all(axis=1)]
+                
+        #         df_filtered.to_csv(filtered_csv_path, index=False)
+    
+        #     return {f"filtered and cleaned csv": filtered_csv_path}
+        
+        # @task()
+        # def filter_data3(num):
+        #     """
+        #     #### fiter task
+        #     Filters the cleaned data by dropping all the unanswered fields in the data and
+        #     saves as csv. Later in data visualization, will show cleaned data, and data
+        #     with unanswered fields dropped
+        #     """
+        #     import os
+
+        #     storage_folder = "./storage/ppp/"
+            
+        #     if os.path.exists(storage_folder):
+            
+        #         file_path = f"{storage_folder}cleaned_data_{num}.csv"
+        #         df = pd.read_csv(file_path)
+        #         df_filtered = df[(df != "Unanswered").all(axis=1)]
+        #         filtered_csv_path = f"{storage_folder}filtered_data_{num}.csv"
+        #         df_filtered.to_csv(filtered_csv_path, index=False)
+    
+        #     return {f"filtered and cleaned csv": filtered_csv_path}
+        
+        # @task()
+        # def filter_data4(num):
+        #     """
+        #     #### fiter task
+        #     Filters the cleaned data by dropping all the unanswered fields in the data and
+        #     saves as csv. Later in data visualization, will show cleaned data, and data
+        #     with unanswered fields dropped
+        #     """
+        #     import os
+
+        #     storage_folder = "./storage/ppp/"
+            
+        #     if os.path.exists(storage_folder):
+            
+        #         file_path = f"{storage_folder}cleaned_data_{num}.csv"
+        #         df = pd.read_csv(file_path)
+        #         df_filtered = df[(df != "Unanswered").all(axis=1)]
+        #         filtered_csv_path = f"{storage_folder}filtered_data_{num}.csv"
+        #         df_filtered.to_csv(filtered_csv_path, index=False)
+    
+        #     return {f"filtered and cleaned csv": filtered_csv_path}
+        
+        # @task()
+        # def filter_data5(num):
+        #     """
+        #     #### fiter task
+        #     Filters the cleaned data by dropping all the unanswered fields in the data and
+        #     saves as csv. Later in data visualization, will show cleaned data, and data
+        #     with unanswered fields dropped
+        #     """
+        #     import os
+
+        #     storage_folder = "./storage/ppp/"
+            
+        #     if os.path.exists(storage_folder):
+            
+        #         file_path = f"{storage_folder}cleaned_data_{num}.csv"
+        #         df = pd.read_csv(file_path)
+        #         df_filtered = df[(df != "Unanswered").all(axis=1)]
+        #         filtered_csv_path = f"{storage_folder}filtered_data_{num}.csv"
+        #         df_filtered.to_csv(filtered_csv_path, index=False)
+    
+        #     return {f"filtered and cleaned csv": filtered_csv_path}
+        
+        # @task()
+        # def filter_data6(num):
+        #     """
+        #     #### fiter task
+        #     Filters the cleaned data by dropping all the unanswered fields in the data and
+        #     saves as csv. Later in data visualization, will show cleaned data, and data
+        #     with unanswered fields dropped
+        #     """
+        #     import os
+
+        #     storage_folder = "./storage/ppp/"
+            
+        #     if os.path.exists(storage_folder):
+            
+        #         file_path = f"{storage_folder}cleaned_data_{num}.csv"
+        #         df = pd.read_csv(file_path)
+        #         df_filtered = df[(df != "Unanswered").all(axis=1)]
+        #         filtered_csv_path = f"{storage_folder}filtered_data_{num}.csv"
+        #         df_filtered.to_csv(filtered_csv_path, index=False)
+    
+        #     return {f"filtered and cleaned csv": filtered_csv_path}
+
+        @task
+        def compile_clean_data():
+            """
+            Compiles all cleaned csv into one csv
+            """
+            import os
+
+            storage_folder = "./storage/ppp/"
+
+            if os.path.exists(storage_folder):
+                compiled_cleaned_csv_path = f"{storage_folder}compiled_cleaned_data.csv"
+                if os.path.exists(compiled_cleaned_csv_path):
+                    print(f"CSV file {compiled_cleaned_csv_path} already exists. Skipping download.")
+
+                    return
+                files = os.listdir(storage_folder)
+                dfs = []
+
+                for file in files:
+                    #only compile cleaned csv files
+                    if "cleaned_data" in file:
+                        file_path = f"{storage_folder}{file}"
+                        df = pd.read_csv(file_path)
+                        dfs.append(df)
+
+            concatDf = pd.concat(dfs, ignore_index=True)
+
+            
+            concatDf.to_csv(compiled_cleaned_csv_path, index=False)
+    
+            return {f"compiled all clean csvs": compiled_cleaned_csv_path}
+
+       
+        @task
+        def compile_filtered_data():
+            """
+            Compiles all filtered csvs into one csv
+            """
+            import os
+
+            storage_folder = "./storage/ppp/"
+
+            if os.path.exists(storage_folder):
+                compiled_filtered_csv_path = f"{storage_folder}compiled_filtered_data.csv"
+                if os.path.exists(compiled_filtered_csv_path):
+                    print(f"CSV file {compiled_filtered_csv_path} already exists. Skipping download.")
+
+                    return
+                files = os.listdir(storage_folder)
+                dfs = []
+
+                for file in files:
+                    #only compile filtered csv files
+                    if "filtered_data" in file:
+                        file_path = f"{storage_folder}{file}"
+                        df = pd.read_csv(file_path)
+                        dfs.append(df)
+
+            concatDf = pd.concat(dfs, ignore_index=True)
+
+            
+            concatDf.to_csv(compiled_filtered_csv_path, index=False)
+    
+            return {f"compiled all filtered csvs": compiled_filtered_csv_path}
+
 
         @task()
         def analyze_data():
             """
             #### Analyze task
-            Task calculates central measurement and spread from the dataframe.
+            Calculates and prints central measurement and spread from the dataframe.
+            Also saves CSV of calculations
             """
             import os
             import pandas as pd
-            cleaned_data = "./storage/ppp/cleaned_data.csv"
+            cleaned_data = "./storage/ppp/compiled_cleaned_data.csv"
             print("storage path exists", os.path.exists(cleaned_data))
             if os.path.exists(cleaned_data):
                 df = pd.read_csv(cleaned_data)
@@ -105,8 +584,8 @@ else:
                 mean_loan_amount = df['CurrentApprovalAmount'].mean()
                 median_loan_amount = df['CurrentApprovalAmount'].median()
 
-                print('Mean Value:', mean_loan_amount)
-                print('Median Value:', median_loan_amount)
+                print('Mean current loan approval amount:', mean_loan_amount)
+                print('Median current loan approval amount:', median_loan_amount)
 
                 df['DateApproved'] = pd.to_datetime(df['DateApproved'])
 
@@ -121,17 +600,48 @@ else:
                 mean_state_count = state_counts.mean()
                 median_state_count = state_counts.median()
 
-                print('Mean State Count::', mean_state_count)
-                print('Median State Count:', median_state_count)
+                print('Mean number of borrowers of all states:', mean_state_count)
+                print('Median number of borrowers of all states:', median_state_count)
 
-                print(f"Amount of borrowers per state:\n {df['BorrowerState'].value_counts()}")
-                print(f"Amount of businesses per type:\n{df['BusinessType'].value_counts()}")
-                print(f"Amount of claimed non profit orgs:\n{df['NonProfit'].value_counts()}")
-                print(f"Amount of businesses owned by gender:\n{df['Gender'].value_counts()}")
-                print(f"Forgiveness Amount std, count, mean, min, and percentiles:\n{df['ForgivenessAmount'].describe()}")
-                print(f"Current Approval Amount std, count, mean, min, and percentiles:\n{df['CurrentApprovalAmount'].describe()}")
-                print(f"Undisbursed Amount std, count, mean, min, and percentiles:\n{df['UndisbursedAmount'].describe()}")
-                print(f"Debt interest proceed std, count, mean, min, and percentiles:\n{df['DEBT_INTEREST_PROCEED'].describe()}")
+                borrowers_per_state = df['BorrowerState'].value_counts()
+                businesses_per_type = df['BusinessType'].value_counts()
+                non_profit_count = df['NonProfit'].value_counts()
+                owned_by_gender = df['Gender'].value_counts()
+                forgivness_stats = df['ForgivenessAmount'].describe()
+                current_approval_stats = df['CurrentApprovalAmount'].describe()
+                undisbursed_stats = df['UndisbursedAmount'].describe()
+                debt_interest_stats = df['DEBT_INTEREST_PROCEED'].describe()
+
+                print(f"Amount of borrowers per state:\n {borrowers_per_state}")
+                print(f"Amount of businesses per type:\n{businesses_per_type}")
+                print(f"Amount of claimed non profit orgs:\n{non_profit_count}")
+                print(f"Amount of businesses owned by gender:\n{owned_by_gender}")
+                print(f"Forgiveness Amount std, count, mean, min, and percentiles:\n{forgivness_stats}")
+                print(f"Current Approval Amount std, count, mean, min, and percentiles:\n{current_approval_stats}")
+                print(f"Undisbursed Amount std, count, mean, min, and percentiles:\n{undisbursed_stats}")
+                print(f"Debt interest proceed std, count, mean, min, and percentiles:\n{debt_interest_stats}")
+                
+                analysis_results = pd.DataFrame({
+                    'Mean Loan Amount': [mean_loan_amount],
+                    'Median Loan Amount': [median_loan_amount],
+                    'Mean Date Approved': [mean_date],
+                    'Median Date Approved': [median_date],
+                    'Mean State Count': [state_counts.mean()],
+                    'Median State Count': [state_counts.median()],
+                    'Borrowers Per State': [borrowers_per_state],
+                    'Businesses Per Type': [businesses_per_type],
+                    'Non-profit Count': [non_profit_count],
+                    'Businesses by Gender': [owned_by_gender],
+                    'Forgiveness Statistics': [forgivness_stats],
+                    'Current Approval Statistics': [current_approval_stats],
+                    'Undisbursed Statistics': [undisbursed_stats],
+                    'Debt Interest Statistics': [debt_interest_stats]
+                })
+
+                analysis_results_path = './storage/ppp/analysis_results.csv'
+                analysis_results.to_csv(analysis_results_path, index=False)
+
+                return {'status': 'success', 'data_path': analysis_results_path}
 
         urls = [
                 "https://data.sba.gov/dataset/8aa276e2-6cab-4f86-aca4-a7dde42adf24/resource/738e639c-1fbf-4e16-beb0-a223831011e8/download/public_150k_plus_230930.csv",
@@ -149,10 +659,10 @@ else:
                 "https://data.sba.gov/dataset/8aa276e2-6cab-4f86-aca4-a7dde42adf24/resource/b6528428-fbd9-4ca6-ae08-9e3416f8ee7f/download/public_up_to_150k_12_230930.csv"
             ]
         
-        order_data = acquire_data(urls)
-        cleaned_data = clean_data()
         
-        order_data >> cleaned_data >> analyze_data()
+        
+        
+        [acquire_data1(urls,0,13)] >> place_holder_task1() >> [clean_data1(0,13)] >> place_holder_task2() >> [filter_data1(13)]  >> analyze_data()
 
 
 
